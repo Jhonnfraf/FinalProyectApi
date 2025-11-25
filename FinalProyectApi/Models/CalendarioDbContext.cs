@@ -41,8 +41,6 @@ public partial class CalendarioDbContext : DbContext
 
             entity.Property(e => e.CalendarId).HasColumnName("CalendarID");
             entity.Property(e => e.CalendarName).HasMaxLength(100);
-            entity.Property(e => e.CalendarPasswordHash).HasMaxLength(256);
-            entity.Property(e => e.CalendarPasswordSalt).HasMaxLength(256);
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");

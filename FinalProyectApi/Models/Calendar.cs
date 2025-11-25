@@ -11,10 +11,6 @@ public partial class Calendar
 
     public string CalendarName { get; set; } = null!;
 
-    public byte[]? CalendarPasswordHash { get; set; }
-
-    public byte[]? CalendarPasswordSalt { get; set; }
-
     public DateTime? CreatedAt { get; set; }
 
     public virtual ICollection<Event> Events { get; set; } = new List<Event>();

@@ -6,26 +6,26 @@ namespace FinalProyectApi.Services
 {
     public class PasswordService
     {
-        public byte[] GenerateSalt()
+        public string GenerateSalt()
         {
             var salt = new byte[32];
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(salt);
-            return salt;
+            return Convert.ToBase64String(salt);
             
         }
 
-        public byte[] HashPassword(string password, byte[] salt)
+        public string HashPassword(string password, string saltBase64)
         {
+            var salt = Convert.FromBase64String(saltBase64);
+
             using var sha256 = SHA256.Create();
-            
-            //convertir el password a bytes
+
             var passwordBytes = Encoding.UTF8.GetBytes(password);
+            var combined = passwordBytes.Concat(salt).ToArray();
 
-            //Combinar password y salt
-            var passwordWithSalt = passwordBytes.Concat(salt).ToArray();
-
-            return sha256.ComputeHash(passwordWithSalt);
+            var hash = sha256.ComputeHash(combined);
+            return Convert.ToBase64String(hash);
         }
     }
 }
