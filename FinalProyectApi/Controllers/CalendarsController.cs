@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using FinalProyectApi.Models;
+﻿using FinalProyectApi.Models;
+using FinalProyectApi.Models.Dto;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace FinalProyectApi.Controllers
@@ -8,122 +9,61 @@ namespace FinalProyectApi.Controllers
     [Route("api/[controller]")]
     public class CalendarsController : ControllerBase
     {
-        private readonly CalendarioDbContext _context; // Reemplaza con el nombre de tu DbContext
+        private readonly CalendarioDbContext _context; 
 
         public CalendarsController(CalendarioDbContext context)
         {
             _context = context;
         }
 
-        /// <summary>
-        /// Obtiene todos los calendarios de un usuario específico
-        /// </summary>
+        //Get: api/Calendars/user/{userId}
+
         [HttpGet("user/{userId}")]
-        public async Task<ActionResult<IEnumerable<Calendar>>> GetCalendarsByUserId(int userId)
+        public async Task<IActionResult> GetCalendarsByUserId(int userId)
         {
-            try
-            {
-                var calendars = await _context.Calendars
-                    .Where(c => c.UserId == userId)
-                    .ToListAsync();
+            var calendars = await _context.Calendars
+                .Where(c => c.UserId == userId)
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
 
-                if (calendars == null || calendars.Count == 0)
-                {
-                    return Ok(new List<Calendar>()); // Retorna lista vacía si no hay calendarios
-                }
-
-                return Ok(calendars);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error al obtener calendarios", error = ex.Message });
-            }
+            return Ok(calendars);
         }
 
-        /// <summary>
-        /// Obtiene un calendario específico por ID
-        /// </summary>
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Calendar>> GetCalendar(int id)
+        //Post: api/Calendars
+        public class CreateCAlendarDto
         {
-            var calendar = await _context.Calendars
-                .FirstOrDefaultAsync(c => c.CalendarId == id);
-
-            if (calendar == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(calendar);
+            public int UserId { get; set; }
+            public string CalendarName { get; set; } = string.Empty;
         }
 
-        /// <summary>
-        /// Crea un nuevo calendario
-        /// </summary>
         [HttpPost]
-        public async Task<ActionResult<Calendar>> CreateCalendar([FromBody] Calendar calendar)
+        public async Task<IActionResult> CreateCalendar([FromBody] CreateCAlendarDto dto)
         {
-            if (calendar == null)
+            if (!_context.Users.Any(u => u.UserId == dto.UserId))
             {
-                return BadRequest();
+                return BadRequest(new { message = "El usuario no existe (Foreign Key inválida)" });
             }
+
+            var calendar = new Calendar
+            {
+                UserId = dto.UserId,
+                CalendarName = dto.CalendarName,
+                CreatedAt = DateTime.UtcNow
+            };
 
             _context.Calendars.Add(calendar);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetCalendar), new { id = calendar.CalendarId }, calendar);
-        }
-
-        /// <summary>
-        /// Actualiza un calendario existente
-        /// </summary>
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCalendar(int id, [FromBody] Calendar calendar)
-        {
-            if (id != calendar.CalendarId)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(calendar).State = EntityState.Modified;
 
             try
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateException ex)
             {
-                if (!CalendarExists(id))
-                {
-                    return NotFound();
-                }
-                throw;
+                return BadRequest(new { message = "Error al guardar el calendario", error = ex.Message });
             }
 
-            return NoContent();
+            return Ok(calendar);
         }
 
-        /// <summary>
-        /// Elimina un calendario
-        /// </summary>
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCalendar(int id)
-        {
-            var calendar = await _context.Calendars.FindAsync(id);
-            if (calendar == null)
-            {
-                return NotFound();
-            }
-
-            _context.Calendars.Remove(calendar);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool CalendarExists(int id)
-        {
-            return _context.Calendars.Any(e => e.CalendarId == id);
-        }
     }
 }
