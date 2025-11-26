@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace FinalProyectApi.Models;
 
@@ -17,5 +18,6 @@ public partial class User
 
     public DateTime? CreatedAt { get; set; }
 
+    
     public virtual ICollection<Calendar> Calendars { get; set; } = new List<Calendar>();
 }

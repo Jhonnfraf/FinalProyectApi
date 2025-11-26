@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace FinalProyectApi.Models;
 
@@ -19,5 +20,6 @@ public partial class Calendar
 
     public virtual ICollection<Routine> Routines { get; set; } = new List<Routine>();
 
+    
     public virtual User User { get; set; } = null!;
 }

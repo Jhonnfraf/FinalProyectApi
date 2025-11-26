@@ -3,6 +3,7 @@ using FinalProyectApi.Models;
 using FinalProyectApi.Models.Dto;
 using FinalProyectApi.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
 
 namespace FinalProyectApi.Controllers
 {
@@ -84,6 +85,32 @@ namespace FinalProyectApi.Controllers
                 userId = user.UserId,
                 username = user.Username
             });
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUser(int id)
+        {
+            var user = await _db.Users
+                .Include(u => u.Calendars)
+                .FirstOrDefaultAsync(u => u.UserId == id);
+
+            if (user == null)
+                return NotFound();
+
+            var dto = new UserDto
+            {
+                UserId = user.UserId,
+                Username = user.Username,
+                Email = user.Email,
+                Calendars = user.Calendars.Select(c => new CalendarDto
+                {
+                    CalendarId = c.CalendarId,
+                    CalendarName = c.CalendarName,
+                    CreatedAt = c.CreatedAt
+                }).ToList()
+            };
+
+            return Ok(dto);
         }
     }
 }
