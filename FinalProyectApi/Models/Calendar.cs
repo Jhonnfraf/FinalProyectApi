@@ -20,6 +20,6 @@ public partial class Calendar
 
     public virtual ICollection<Routine> Routines { get; set; } = new List<Routine>();
 
-    
+    [JsonIgnore]
     public virtual User User { get; set; } = null!;
 }
