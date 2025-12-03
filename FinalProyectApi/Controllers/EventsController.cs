@@ -95,5 +95,23 @@ namespace FinalProyectApi.Controllers
             return NoContent();
         }
 
+        [HttpPut("calendar/{calendarId}/{eventId}")]
+        public async Task<IActionResult> UpdateEvent(int calendarId, int eventId, [FromBody] UpdateEventDto dto)
+        {
+            var ev = await _context.Events
+                .FirstOrDefaultAsync(e => e.CalendarId == calendarId && e.EventId == eventId);
+
+            if (ev == null)
+                return NotFound("El evento no existe o es de un calendario incorrecto.");
+            //Actualizar los datos
+            ev.Title = dto.Title;
+            ev.Description = dto.Description;
+            ev.StartDate = dto.StartDate;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Evento actualizado correctamente." });
+        
+        }
     }
 }
